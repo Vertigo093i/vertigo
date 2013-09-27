@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<PublishPipelineCollectFilesCore>
+			$(PublishPipelineCollectFilesCore);
+			CollectFilesFromDevExpress
+		</PublishPipelineCollectFilesCore>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- This prevents the file itself from being published when project type is 'Web Site' or when 'BuildAction' is set to 'Content' -->
+		<ExcludeFromPackageFiles Include="$(MSBuildThisFileFullPath)" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(DXCulture)' != '' and '$(DXCulture)' != '*'">
+		<_DXCultureItem Include="$(DXCulture)">
+			<DestinationSubDirectory>%(Identity)\</DestinationSubDirectory>
+		</_DXCultureItem>
+	</ItemGroup>
+
+	<Target Name="CollectFilesFromDevExpress">
+		<Message Text="Gather all files from Project items %40(Reference[DevExpress])." />
+
+		<ItemGroup>
+			<_DXBinDeploy Include="@(ReferencePath->WithMetadataValue('CopyLocal', 'false'))"
+			              Condition="$([System.String]::new('%(Filename)').StartsWith('DevExpress', System.StringComparison.OrdinalIgnoreCase))">
+				<DestinationRelativePath>bin\%(ReferencePath.DestinationSubDirectory)%(Filename)%(Extension)</DestinationRelativePath>
+			</_DXBinDeploy>
+
+			<_DXBinDeploy Include="@(_ReferenceRelatedPaths->WithMetadataValue('CopyLocal', 'false'))"
+			              Condition="$([System.String]::new('%(Filename)').StartsWith('DevExpress', System.StringComparison.OrdinalIgnoreCase))">
+				<DestinationRelativePath>bin\%(_ReferenceRelatedPaths.DestinationSubDirectory)%(Filename)%(Extension)</DestinationRelativePath>
+			</_DXBinDeploy>
+
+			<_DXBinDeploy Include="@(ReferenceDependencyPaths->WithMetadataValue('CopyLocal', 'false'))"
+			              Condition="$([System.String]::new('%(Filename)').StartsWith('DevExpress', System.StringComparison.OrdinalIgnoreCase))">
+				<DestinationRelativePath>bin\%(ReferenceDependencyPaths.DestinationSubDirectory)%(Filename)%(Extension)</DestinationRelativePath>
+			</_DXBinDeploy>
+
+			<_DXReferenceSatellitePaths Include="@(ReferenceSatellitePaths->WithMetadataValue('CopyLocal', 'false'))"
+			                            Condition="'$(DXCulture)' != '' and $([System.String]::new('%(Filename)').StartsWith('DevExpress', System.StringComparison.OrdinalIgnoreCase))">
+			</_DXReferenceSatellitePaths>
+		</ItemGroup>
+
+		<FilterByItems PipelineItems="@(_DXReferenceSatellitePaths)"
+		               SourceMetadataName="DestinationSubDirectory"
+		               Filter="@(_DXCultureItem)"
+		               FilterMetadataName="DestinationSubDirectory"
+		               Condition="'@(_DXCultureItem->Count())' != '0'">
+			<Output TaskParameter="OutFilter" ItemName="_DXReferenceSatellitePathsToExclude" />
+		</FilterByItems>
+
+		<ItemGroup Condition="'$(DXCulture)' != ''">
+			<_DXReferenceSatellitePaths Remove="@(_DXReferenceSatellitePathsToExclude)" />
+
+			<_DXBinDeploy Include="@(_DXReferenceSatellitePaths)">
+				<DestinationRelativePath>bin\%(_DXReferenceSatellitePaths.DestinationSubDirectory)%(Filename)%(Extension)</DestinationRelativePath>
+			</_DXBinDeploy>
+		</ItemGroup>
+
+		<Message Text="@(_DXBinDeploy->'%(Identity) -> %(DestinationRelativePath)', '&#x0d;&#x0a;')" />
+
+		<ItemGroup>
+			<FilesForPackagingFromProject Include="@(_DXBinDeploy)">
+				<FromTarget>CollectFilesFromDevExpress</FromTarget>
+				<Category>Run</Category>
+			</FilesForPackagingFromProject>
+		</ItemGroup>
+	</Target>
+</Project>

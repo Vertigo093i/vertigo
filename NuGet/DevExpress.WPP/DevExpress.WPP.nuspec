@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>DevExpress.WPP</id>
+        <version>1.0.0</version>
+        <title>WPP CollectFiles Task AddOn for DevExpress</title>
+        <authors>Andrew Nefedkin</authors>
+        <projectUrl>http://code.google.com/p/vertigo/</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Injects all dependent Developer Express runtime libraries into the WPP process.</description>
+        <copyright>Copyright © 2013 Andrew Nefedkin. All rights reserved.</copyright>
+        <tags>DevExpress MSBuild WPP AspNet Publish</tags>
+    </metadata>
+    <files>
+        <file src="content\DevExpress.CollectFiles.wpp.targets" target="content\DevExpress.CollectFiles.wpp.targets" />
+        <file src="tools\install.ps1" target="tools\install.ps1" />
+    </files>
+</package>
